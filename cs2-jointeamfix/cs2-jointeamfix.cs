@@ -15,7 +15,6 @@ public class JoinTeamFix : BasePlugin
 
     public override void Load(bool hotLoad)
     {
-        CCSPlayerController player;
         entity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ElementAt(0);
         angle = entity.AbsRotation;
         position = entity.AbsOrigin;
