@@ -16,9 +16,14 @@ public class JoinTeamFix : BasePlugin
     public override void Load(bool hotLoad)
     {
         CCSPlayerController player;
-        player.PlayerPawn.Value.Teleport(1,2,3);
         entity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ElementAt(0);
         angle = entity.AbsRotation;
         position = entity.AbsOrigin;
+        RegisterEventHandler<EventJointeamFailed>((@event,info)=>
+        {
+            @event.Userid.ChangeTeam(CsTeam.Terrorist);
+            @event.Userid.PlayerPawn.Value!.Teleport(position!,angle!,new Vector(0, 0, 0));
+            return HookResult.Continue;
+        });
     }
 }
