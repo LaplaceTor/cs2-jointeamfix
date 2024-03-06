@@ -6,10 +6,6 @@ namespace cs2_jointeamfix;
 
 public class JoinTeamFix : BasePlugin
 {
-    private CBaseEntity? entity;
-    private QAngle? angle;
-    private CounterStrikeSharp.API.Modules.Utils.Vector? position;
-
     public override string ModuleName => "cs2-jointeamfix";
     public override string ModuleVersion => "0.1.0";
 
@@ -17,15 +13,39 @@ public class JoinTeamFix : BasePlugin
     {
         RegisterEventHandler<EventJointeamFailed>((@event, info) =>
         {
-            if (@event.Reason == 0)
-                @event.Userid.ChangeTeam(CsTeam.Terrorist);
-            entity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ElementAt(0);
-            if (entity != null)
+            bool foundTeamJoin = false;
+            QAngle? spawnangle;
+            Vector? spawnorigin;
+            CBaseEntity? spawnentity = null;
+            bool searchCT = false;
+            while (!foundTeamJoin)
             {
-                angle = entity.AbsRotation;
-                position = entity.AbsOrigin;
+                if (!searchCT)
+                {
+                    spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ElementAt(0);
+                    @event.Userid.ChangeTeam(CsTeam.Terrorist);
+                }
+                else
+                {
+                    spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ElementAt(0);
+                    @event.Userid.ChangeTeam(CsTeam.CounterTerrorist);
+                }
+                if (spawnentity != null)
+                {
+                    spawnangle = spawnentity.AbsRotation;
+                    spawnorigin = spawnentity.AbsOrigin;
+                    @event.Userid.PlayerPawn.Value!.Teleport(spawnorigin!, spawnangle!, new Vector(0, 0, 0));
+                    foundTeamJoin = true;
+                }
+                else if (!searchCT)
+                {
+                    searchCT = true;
+                }
+                else
+                {
+                    break;
+                }
             }
-            @event.Userid.PlayerPawn.Value!.Teleport(position, angle, new Vector(0, 0, 0));
             return HookResult.Continue;
         });
     }
