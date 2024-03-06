@@ -43,6 +43,7 @@ public class JoinTeamFix : BasePlugin
                 }
                 else
                 {
+                    @event.Userid.ChangeTeam(CsTeam.Spectator);
                     break;
                 }
             }
