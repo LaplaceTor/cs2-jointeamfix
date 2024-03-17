@@ -18,6 +18,7 @@ public class JoinTeamFix : BasePlugin
     {
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
+            TeamHistory.Clear();
             var playerlist = Utilities.GetPlayers().Where((x) => x.TeamNum > 1);
             foreach (var player in playerlist)
             {
@@ -41,6 +42,7 @@ public class JoinTeamFix : BasePlugin
         RegisterEventHandler<EventJointeamFailed>((@event, info) =>
         {
             TryJoinTeam(@event.Userid);
+            TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid.SteamID.ToString())).ToList();
             return HookResult.Continue;
         });
     }
