@@ -8,7 +8,7 @@ public class JoinTeamFix : BasePlugin
 {
     public override string ModuleName => "cs2-jointeamfix";
     public override string ModuleAuthor => "Lapl";
-    public override string ModuleVersion => "2.0";
+    public override string ModuleVersion => "2.0beta";
 
     private string[] TeamValue = new string[3];
 
