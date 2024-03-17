@@ -7,48 +7,82 @@ namespace cs2_jointeamfix;
 public class JoinTeamFix : BasePlugin
 {
     public override string ModuleName => "cs2-jointeamfix";
-    public override string ModuleVersion => "1.0";
+    public override string ModuleAuthor => "Lapl";
+    public override string ModuleVersion => "2.0";
+
+    private string[] TeamValue = new string[3];
+
+    private List<string[]> TeamHistory = new();
 
     public override void Load(bool hotLoad)
     {
-        RegisterEventHandler<EventJointeamFailed>((@event, info) =>
+        RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
-            bool foundTeamJoin = false;
-            QAngle? spawnangle;
-            Vector? spawnorigin;
-            CBaseEntity? spawnentity = null;
-            bool searchCT = false;
-            while (!foundTeamJoin)
+            var playerlist = Utilities.GetPlayers().Where((x) => x.TeamNum > 1);
+            foreach (var player in playerlist)
             {
-                if (!searchCT)
-                {
-                    spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").FirstOrDefault();
-                    @event.Userid.ChangeTeam(CsTeam.Terrorist);
-                }
-                else
-                {
-                    spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
-                    @event.Userid.ChangeTeam(CsTeam.CounterTerrorist);
-                }
-                if (spawnentity != null)
-                {
-                    spawnangle = spawnentity.AbsRotation;
-                    spawnorigin = spawnentity.AbsOrigin;
-                    @event.Userid.PlayerPawn.Value!.Teleport(spawnorigin!, spawnangle!, new Vector(0, 0, 0));
-                    @event.Userid.Respawn();
-                    foundTeamJoin = true;
-                }
-                else if (!searchCT)
-                {
-                    searchCT = true;
-                }
-                else
-                {
-                    @event.Userid.ChangeTeam(CsTeam.Spectator);
-                    break;
-                }
+                if (!player.PawnIsAlive)
+                    TryJoinTeam(player);
+                TeamHistory = TeamHistory.Where(x => !x.Contains(player.SteamID.ToString())).ToList();
             }
             return HookResult.Continue;
         });
+        RegisterEventHandler<EventPlayerTeam>((@event, info) =>
+        {
+            if (!@event.Isbot && !@event.Disconnect)
+            {
+                TeamValue = new string[] { @event.Userid.SteamID.ToString(), @event.Team.ToString(), @event.Oldteam.ToString() };
+                TeamHistory.Add(TeamValue);
+            }
+            else
+                TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid.SteamID.ToString())).ToList();
+            return HookResult.Continue;
+        });
+        RegisterEventHandler<EventJointeamFailed>((@event, info) =>
+        {
+            TryJoinTeam(@event.Userid);
+            return HookResult.Continue;
+        });
+    }
+
+    public void TryJoinTeam(CCSPlayerController player)
+    {
+        if (TeamHistory.Any(x => x.Contains(player.SteamID.ToString())))
+        {
+            var playerhistory = TeamHistory.Where(x => x.Contains(player.SteamID.ToString())).FirstOrDefault();
+            if (player.TeamNum == int.Parse(playerhistory![2]))
+                switch (int.Parse(playerhistory[1]))
+                {
+                    case 1: player.ChangeTeam(CsTeam.Spectator); break;
+                    case 2: player.ChangeTeam(CsTeam.Terrorist); break;
+                    case 3: player.ChangeTeam(CsTeam.CounterTerrorist); break;
+                }
+        }
+        bool foundTeamJoin = false;
+        QAngle? spawnangle;
+        Vector? spawnorigin;
+        CBaseEntity? spawnentity = null;
+        bool searchany = false;
+
+        while (!foundTeamJoin)
+        {
+            if (player.TeamNum == 2 || searchany == true)
+                spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
+            else if (player.TeamNum == 3 || searchany == true)
+                spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
+            if (spawnentity != null)
+            {
+                spawnangle = spawnentity.AbsRotation;
+                spawnorigin = spawnentity.AbsOrigin;
+                player.PlayerPawn.Value!.Teleport(spawnorigin!, spawnangle!, new Vector(0, 0, 0));
+                player.Respawn();
+                foundTeamJoin = true;
+            }
+            else
+            {
+                searchany = true;
+            }
+        }
     }
 }
+
