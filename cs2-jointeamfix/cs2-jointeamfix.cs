@@ -70,7 +70,7 @@ public class JoinTeamFix : BasePlugin
         {
             if (player.TeamNum == 2 || searchany == true)
                 spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
-            else if (player.TeamNum == 3 || searchany == true)
+            if (player.TeamNum == 3 || searchany == true)
                 spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
             if (spawnentity != null)
             {
