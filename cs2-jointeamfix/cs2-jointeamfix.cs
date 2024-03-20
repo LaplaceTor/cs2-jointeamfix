@@ -63,17 +63,20 @@ public class JoinTeamFix : BasePlugin
         bool foundTeamJoin = false;
         QAngle? spawnangle;
         Vector? spawnorigin;
+        List<CBaseEntity> spawnentitygroup = new();
         CBaseEntity? spawnentity = null;
         bool searchany = false;
+        Random random = new();
 
         while (!foundTeamJoin)
         {
             if (player.TeamNum == 2 || searchany == true)
-                spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
+                spawnentitygroup = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
             if (player.TeamNum == 3 || searchany == true)
-                spawnentity = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").FirstOrDefault();
+                spawnentitygroup = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
             if (spawnentity != null)
             {
+                spawnentity = spawnentitygroup[random.Next(0,spawnentitygroup.Count-1)];
                 spawnangle = spawnentity.AbsRotation;
                 spawnorigin = spawnentity.AbsOrigin;
                 player.PlayerPawn.Value!.Teleport(spawnorigin!, spawnangle!, new Vector(0, 0, 0));
