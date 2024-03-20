@@ -19,13 +19,10 @@ public class JoinTeamFix : BasePlugin
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
             TeamHistory.Clear();
-            var playerlist = Utilities.GetPlayers().Where((x) => x.TeamNum > 1);
+            var playerlist = Utilities.GetPlayers().Where((x) => x.TeamNum > 1).ToList();
             foreach (var player in playerlist)
-            {
                 if (!player.PawnIsAlive)
                     TryJoinTeam(player);
-                TeamHistory = TeamHistory.Where(x => !x.Contains(player.SteamID.ToString())).ToList();
-            }
             return HookResult.Continue;
         });
         RegisterEventHandler<EventPlayerTeam>((@event, info) =>
