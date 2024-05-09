@@ -9,13 +9,19 @@ public class JoinTeamFix : BasePlugin
     public override string ModuleName => "cs2-jointeamfix";
     public override string ModuleAuthor => "Lapl";
     public override string ModuleVersion => "3.0";
-
     private string[] TeamValue = new string[3];
-
     private List<string[]> TeamHistory = new();
+    private List<CBaseEntity> spawnentityct = new();
+    private List<CBaseEntity> spawnentityt = new();
 
     public override void Load(bool hotLoad)
     {
+        RegisterListener<Listeners.OnMapStart>((onmapstart) =>
+        {
+            spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+            spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
+        });
+
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
             TeamHistory.Clear();
@@ -29,17 +35,17 @@ public class JoinTeamFix : BasePlugin
         {
             if (!@event.Isbot && !@event.Disconnect)
             {
-                TeamValue = new string[] { @event.Userid.SteamID.ToString(), @event.Team.ToString(), @event.Oldteam.ToString() };
+                TeamValue = new string[] { @event.Userid!.SteamID.ToString(), @event.Team.ToString(), @event.Oldteam.ToString() };
                 TeamHistory.Add(TeamValue);
             }
             else
-                TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid.SteamID.ToString())).ToList();
+                TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid!.SteamID.ToString())).ToList();
             return HookResult.Continue;
         });
         RegisterEventHandler<EventJointeamFailed>((@event, info) =>
         {
-            TryJoinTeam(@event.Userid);
-            TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid.SteamID.ToString())).ToList();
+            TryJoinTeam(@event.Userid!);
+            TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid!.SteamID.ToString())).ToList();
             return HookResult.Continue;
         });
     }
@@ -68,9 +74,9 @@ public class JoinTeamFix : BasePlugin
         while (!foundTeamJoin)
         {
             if (player.TeamNum == 2 || searchany == true)
-                spawnentitygroup = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+                spawnentitygroup = spawnentityt;
             if (player.TeamNum == 3 || searchany == true)
-                spawnentitygroup = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+                spawnentitygroup = spawnentityct;
             if (spawnentity != null)
             {
                 spawnentity = spawnentitygroup[random.Next(0,spawnentitygroup.Count-1)];
