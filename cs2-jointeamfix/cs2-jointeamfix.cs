@@ -18,8 +18,11 @@ public class JoinTeamFix : BasePlugin
     {
         RegisterListener<Listeners.OnMapStart>((onmapstart) =>
         {
-            spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
-            spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
+            Server.NextFrame(()=>
+            {
+                spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+                spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
+            });
         });
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
