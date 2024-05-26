@@ -30,6 +30,7 @@ public class JoinTeamFix : BasePlugin
                 if(spawnentityct.Count != 0)
                     foreach(var entity in spawnentityct)
                     {
+                        entity.AbsOrigin!.Z += 16f;
                         spawnoriginct.Add(entity.AbsOrigin!);
                         Server.NextFrame(entity.Remove);
                     }
@@ -37,6 +38,7 @@ public class JoinTeamFix : BasePlugin
                 if(spawnentityt.Count != 0)
                     foreach(var entity in spawnentityt)
                     {
+                        entity.AbsOrigin!.Z += 16f;
                         spawnorigint.Add(entity.AbsOrigin!);
                         Server.NextFrame(entity.Remove);
                     }
