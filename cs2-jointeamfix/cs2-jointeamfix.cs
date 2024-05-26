@@ -13,15 +13,33 @@ public class JoinTeamFix : BasePlugin
     private List<string[]> TeamHistory = new();
     private List<CBaseEntity> spawnentityct = new();
     private List<CBaseEntity> spawnentityt = new();
+    private List<Vector> spawnoriginct = new();
+    private List<Vector> spawnorigint = new();
 
     public override void Load(bool hotLoad)
     {
         RegisterListener<Listeners.OnMapStart>((onmapstart) =>
         {
+            spawnentityct.Clear();
+            spawnentityt.Clear();
+            spawnoriginct.Clear();
+            spawnorigint.Clear();
             Server.NextFrame(()=>
             {
                 spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+                if(spawnentityct.Count != 0)
+                    foreach(var entity in spawnentityct)
+                    {
+                        spawnoriginct.Add(entity.AbsOrigin!);
+                        Server.NextFrame(entity.Remove);
+                    }
                 spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
+                if(spawnentityt.Count != 0)
+                    foreach(var entity in spawnentityt)
+                    {
+                        spawnorigint.Add(entity.AbsOrigin!);
+                        Server.NextFrame(entity.Remove);
+                    }
             });
         });
 
@@ -67,25 +85,21 @@ public class JoinTeamFix : BasePlugin
                 }
         }
         bool foundTeamJoin = false;
-        QAngle? spawnangle;
         Vector? spawnorigin;
-        List<CBaseEntity> spawnentitygroup = new();
-        CBaseEntity? spawnentity = null;
+        List<Vector> spawnorigingroup = new();
         bool searchany = false;
         Random random = new();
 
         while (!foundTeamJoin)
         {
             if (player.TeamNum == 2 || searchany == true)
-                spawnentitygroup = spawnentityt;
+                spawnorigingroup = spawnorigint;
             if (player.TeamNum == 3 || searchany == true)
-                spawnentitygroup = spawnentityct;
-            if (spawnentity != null)
+                spawnorigingroup = spawnoriginct;
+            if (spawnorigingroup.Count() != 0)
             {
-                spawnentity = spawnentitygroup[random.Next(0,spawnentitygroup.Count-1)];
-                spawnangle = spawnentity.AbsRotation;
-                spawnorigin = spawnentity.AbsOrigin;
-                player.PlayerPawn.Value!.Teleport(spawnorigin!, spawnangle!, new Vector(0, 0, 0));
+                spawnorigin = spawnorigingroup[random.Next(0,spawnorigingroup.Count-1)];
+                player.PlayerPawn.Value!.Teleport(spawnorigin!, new QAngle(0, 0, 0), new Vector(0, 0, 0));
                 player.Respawn();
                 foundTeamJoin = true;
             }
