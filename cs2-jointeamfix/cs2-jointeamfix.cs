@@ -26,6 +26,8 @@ public class JoinTeamFix : BasePlugin
             spawnentityt.Clear();
             spawnoriginct.Clear();
             spawnorigint.Clear();
+            TeamHistory.Clear();
+            changeteamcalm.Clear();
             Server.NextFrame(()=>
             {
                 spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
@@ -65,8 +67,20 @@ public class JoinTeamFix : BasePlugin
             {
                 if(!@event.Disconnect)
                 {
+                    if(changeteamcalm.Contains(@event.Userid!.SteamID))
+                    {
+                        switch (@event.Oldteam)
+                        {
+                            case 1: @event.Userid.ChangeTeam(CsTeam.Spectator); break;
+                            case 2: @event.Userid.ChangeTeam(CsTeam.Terrorist); break;
+                            case 3: @event.Userid.ChangeTeam(CsTeam.CounterTerrorist); break;
+                        }
+                        @event.Userid.PrintToChat("Change team calm until the next round");
+                        return HookResult.Continue;
+                    }
                     TeamValue = new string[] { @event.Userid!.SteamID.ToString(), @event.Team.ToString(), @event.Oldteam.ToString() };
                     TeamHistory.Add(TeamValue);
+                    changeteamcalm.Add(@event.Userid!.SteamID);
                 }
                 else
                 {
