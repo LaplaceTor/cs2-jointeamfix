@@ -69,7 +69,9 @@ public class JoinTeamFix : BasePlugin
         });
         RegisterEventHandler<EventJointeamFailed>((@event, info) =>
         {
-            TryJoinTeam(@event.Userid!);
+            if(@event.Userid == null)
+                return HookResult.Continue;
+            TryJoinTeam(@event.Userid);
             TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid!.SteamID.ToString())).ToList();
             return HookResult.Continue;
         });
