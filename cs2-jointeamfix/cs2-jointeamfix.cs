@@ -96,10 +96,18 @@ public class JoinTeamFix : BasePlugin
 
         while (!foundTeamJoin)
         {
-            if (player.TeamNum == 2 || searchany == true)
+            if (player.TeamNum == 2)
+            {
                 spawnorigingroup = spawnorigint;
-            if (player.TeamNum == 3 || searchany == true)
+                if(searchany == true)
+                    spawnorigingroup = spawnoriginct;
+            }
+            else if (player.TeamNum == 3)
+            {
                 spawnorigingroup = spawnoriginct;
+                if(searchany == true)
+                    spawnorigingroup = spawnorigint;
+            }
             if (spawnorigingroup.Count() != 0)
             {
                 spawnorigin = spawnorigingroup[random.Next(0,spawnorigingroup.Count-1)];
