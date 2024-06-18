@@ -8,7 +8,7 @@ public class JoinTeamFix : BasePlugin
 {
     public override string ModuleName => "cs2-jointeamfix";
     public override string ModuleAuthor => "Lapl";
-    public override string ModuleVersion => "4.0";
+    public override string ModuleVersion => "5.1";
     private string[] TeamValue = new string[3];
     private List<string[]> TeamHistory = new();
     private List<CBaseEntity> spawnentityct = new();
