@@ -8,11 +8,7 @@ public class JoinTeamFix : BasePlugin
 {
     public override string ModuleName => "cs2-jointeamfix";
     public override string ModuleAuthor => "Lapl";
-    public override string ModuleVersion => "5.1";
-    private string[] TeamValue = new string[3];
-    private List<string[]> TeamHistory = new();
-    private List<CBaseEntity> spawnentityct = new();
-    private List<CBaseEntity> spawnentityt = new();
+    public override string ModuleVersion => "final";
     private List<Vector> spawnoriginct = new();
     private List<Vector> spawnorigint = new();
 
@@ -20,13 +16,12 @@ public class JoinTeamFix : BasePlugin
     {
         RegisterListener<Listeners.OnMapStart>((onmapstart) =>
         {
-            spawnentityct.Clear();
-            spawnentityt.Clear();
+            Server.ExecuteCommand("mp_spectators_max 64");
             spawnoriginct.Clear();
             spawnorigint.Clear();
             Server.NextFrame(()=>
             {
-                spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
+                var spawnentityct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist").ToList();
                 if(spawnentityct.Count != 0)
                 {
                     foreach(var entity in spawnentityct)
@@ -35,7 +30,7 @@ public class JoinTeamFix : BasePlugin
                         spawnoriginct.Add(entity.AbsOrigin!);
                     }
                 }
-                spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
+                var spawnentityt = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist").ToList();
                 if(spawnentityt.Count != 0)
                 {
                     foreach(var entity in spawnentityt)
@@ -49,47 +44,24 @@ public class JoinTeamFix : BasePlugin
 
         RegisterEventHandler<EventRoundStart>((@event, info) =>
         {
-            TeamHistory.Clear();
             var playerlist = Utilities.GetPlayers().Where((x) => x.TeamNum > 1).ToList();
             foreach (var player in playerlist)
-                if (!player.PawnIsAlive)
-                    TryJoinTeam(player);
+                if (!player.PawnIsAlive || player.InSwitchTeam)
+                    player.Respawn();
             return HookResult.Continue;
         });
-        RegisterEventHandler<EventPlayerTeam>((@event, info) =>
-        {
-            if (!@event.Isbot && !@event.Disconnect)
-            {
-                TeamValue = new string[] { @event.Userid!.SteamID.ToString(), @event.Team.ToString(), @event.Oldteam.ToString() };
-                TeamHistory.Add(TeamValue);
-            }
-            else
-                TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid!.SteamID.ToString())).ToList();
-            return HookResult.Continue;
-        });
+        
         RegisterEventHandler<EventJointeamFailed>((@event, info) =>
         {
             if(@event.Userid == null)
                 return HookResult.Continue;
             TryJoinTeam(@event.Userid);
-            TeamHistory = TeamHistory.Where(x => !x.Contains(@event.Userid!.SteamID.ToString())).ToList();
             return HookResult.Continue;
         });
     }
 
     public void TryJoinTeam(CCSPlayerController player)
     {
-        if (TeamHistory.Any(x => x.Contains(player.SteamID.ToString())))
-        {
-            var playerhistory = TeamHistory.Where(x => x.Contains(player.SteamID.ToString())).FirstOrDefault();
-            if (player.TeamNum == int.Parse(playerhistory![2]))
-                switch (int.Parse(playerhistory[1]))
-                {
-                    case 1: player.ChangeTeam(CsTeam.Spectator); break;
-                    case 2: player.ChangeTeam(CsTeam.Terrorist); break;
-                    case 3: player.ChangeTeam(CsTeam.CounterTerrorist); break;
-                }
-        }
         bool foundTeamJoin = false;
         Vector? spawnorigin;
         List<Vector> spawnorigingroup = new();
@@ -98,18 +70,9 @@ public class JoinTeamFix : BasePlugin
 
         while (!foundTeamJoin)
         {
-            if (player.TeamNum == 2)
-            {
-                spawnorigingroup = spawnorigint;
-                if(searchany == true)
-                    spawnorigingroup = spawnoriginct;
-            }
-            else if (player.TeamNum == 3)
-            {
+            spawnorigingroup = spawnorigint;
+            if(searchany == true)
                 spawnorigingroup = spawnoriginct;
-                if(searchany == true)
-                    spawnorigingroup = spawnorigint;
-            }
             if (spawnorigingroup.Count() != 0)
             {
                 spawnorigin = spawnorigingroup[random.Next(0,spawnorigingroup.Count-1)];
@@ -118,9 +81,7 @@ public class JoinTeamFix : BasePlugin
                 foundTeamJoin = true;
             }
             else
-            {
                 searchany = true;
-            }
         }
     }
 }
